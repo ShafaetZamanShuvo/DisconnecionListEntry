@@ -316,12 +316,12 @@ export default {
     },
 
     generatePrintableReport() {
-    if (this.entries.length === 0) {
-      alert("প্রিন্ট করার জন্য কোন ডাটা নেই!");
-      return;
-    }
-    this.showPrintView = true;
-  },
+      if (this.entries.length === 0) {
+        alert("প্রিন্ট করার জন্য কোন ডাটা নেই!");
+        return;
+      }
+      this.showPrintView = true;
+    },
 
     async downloadData() {
       if (this.entries.length === 0) {

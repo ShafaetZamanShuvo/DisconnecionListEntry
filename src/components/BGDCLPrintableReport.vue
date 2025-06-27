@@ -1,63 +1,64 @@
 <template>
-  <div class="print-page" id="printArea">
-    <!-- Header -->
-    <div class="header">
-      <h2>বাখরাবাদ গ্যাস ডিস্ট্রিবিউশন কোম্পানি লিমিটেড</h2>
-      <h4>(পেট্রোবাংলার একটি প্রতিষ্ঠান)</h4>
-      <h5>প্রধান কার্যালয়, চাঁপাপুর, কুমিল্লা।</h5>
-
-      <br />
-      <h3>পরিদর্শন প্রতিবেদন</h3>
-      <div class="header-row">
-        <div>টীম নং: <span contenteditable="true">_________</span></div>
-        <div>{{ currentDate }}</div>
-      </div>
-      <hr />
-    </div>
-
-    <!-- Table -->
-    <table class="report-table">
-      <thead>
-        <tr>
-          <th>ক্রমিক</th>
-          <th>গ্রাহকের নাম ও ঠিকানা</th>
-          <th>গ্রাহক কোড</th>
-          <th>অনুমোদিত বার্নার</th>
-          <th>প্রাপ্ত বার্নার</th>
-          <th>বকেয়া বিবরণ</th>
-          <th>মন্তব্য</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(entry, index) in entries" :key="index">
-          <td>{{ index + 1 }}</td>
-          <td>
-            {{ entry.customerName }} <br />
-            {{ entry.customerAddress }} <br />
-            <span v-if="entry.location">
-              লোকেশন: {{ entry.location.latitude.toFixed(7) }}, {{ entry.location.longitude.toFixed(7) }}
-            </span>
-          </td>
-          <td>{{ entry.customerCode }}</td>
-          <td>{{ entry.approvedBurner }}</td>
-          <td>{{ entry.burnerFound }}</td>
-          <td>{{ entry.due || 'নেই' }}</td>
-          <td>{{ entry.remarks || 'নেই' }}</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <!-- Signature -->
-    <div class="signature-box">
-      <div>পরিদর্শনকারী কর্মকর্তার স্বাক্ষর</div>
-      <div class="signature-line"></div>
-    </div>
-
+  <div>
     <!-- Print Button -->
-    <div class="no-print text-center mt-3">
-      <button class="btn btn-primary" @click="printPage">
-        প্রিন্ট করুন
-      </button>
+    <button @click="window.print()" class="no-print btn btn-success mb-3">
+      <i class="fas fa-print"></i> প্রিন্ট করুন
+    </button>
+
+    <!-- Paginated Print Pages -->
+    <div
+      v-for="(pageEntries, pageIndex) in paginatedEntries"
+      :key="pageIndex"
+      class="print-page"
+    >
+      <!-- Header -->
+      <div class="print-header">
+        <h3>বিজিডিসিএল ফিল্ড রিপোর্ট</h3>
+        <div>টীম নং: {{ teamNo }} | তারিখ: {{ currentDate }}</div>
+      </div>
+
+      <!-- Table -->
+      <table class="print-table">
+        <thead>
+          <tr>
+            <th>ক্রমিক</th>
+            <th>কোড</th>
+            <th>নাম, ঠিকানা ও অবস্থান</th>
+            <th>অনুমোদিত বার্নার</th>
+            <th>পাওয়া বার্নার</th>
+            <th>বকেয়া</th>
+            <th>মন্তব্য</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(entry, idx) in pageEntries" :key="idx">
+            <td>{{ idx + 1 + pageIndex * 15 }}</td>
+            <td>{{ entry.customerCode }}</td>
+            <td>
+              {{ entry.customerName }}<br />
+              {{ entry.customerAddress }}<br />
+              <span v-if="entry.location">
+                {{ entry.location.latitude.toFixed(7) }}, {{ entry.location.longitude.toFixed(7) }}
+              </span>
+            </td>
+            <td>{{ entry.approvedBurner }}</td>
+            <td>{{ entry.burnerFound }}</td>
+            <td>{{ entry.due || 'নেই' }}</td>
+            <td>{{ entry.remarks || 'নেই' }}</td>
+          </tr>
+          <!-- Fill empty rows to maintain 15 rows per page -->
+          <tr v-for="n in 15 - pageEntries.length" :key="'empty-' + n">
+            <td colspan="7" style="height: 25px;">&nbsp;</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Footer -->
+      <div class="print-footer">
+        <p>স্বাক্ষর:</p>
+      </div>
+
+      <div v-if="pageIndex < paginatedEntries.length - 1" class="page-break"></div>
     </div>
   </div>
 </template>
@@ -68,92 +69,64 @@ export default {
   props: {
     entries: {
       type: Array,
-      required: true
-    }
+      required: true,
+    },
+    teamNo: {
+      type: String,
+      default: "____",
+    },
   },
-  data() {
-    return {
-      currentDate: new Date().toLocaleDateString('bn-BD', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
-    };
+  computed: {
+    currentDate() {
+      return new Date().toLocaleDateString("bn-BD");
+    },
+    paginatedEntries() {
+      const chunkSize = 15;
+      const chunks = [];
+      for (let i = 0; i < this.entries.length; i += chunkSize) {
+        chunks.push(this.entries.slice(i, i + chunkSize));
+      }
+      return chunks.length > 0 ? chunks : [[]];
+    },
   },
-  methods: {
-    printPage() {
-      window.print();
-    }
-  }
 };
 </script>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali&display=swap');
-
 .print-page {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 10mm;
+  box-sizing: border-box;
   font-family: 'Noto Sans Bengali', sans-serif;
-  padding: 20px;
-  background: white;
-  color: black;
 }
 
-.header {
+.print-header,
+.print-footer {
   text-align: center;
+  margin-bottom: 10px;
 }
 
-.header-row {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 10px;
-}
-
-.report-table {
+.print-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 20px;
-  page-break-inside: auto;
+  font-size: 12px;
 }
 
-.report-table th,
-.report-table td {
+.print-table th,
+.print-table td {
   border: 1px solid #000;
-  padding: 8px;
-  text-align: center;
-  vertical-align: top;
-  page-break-inside: avoid;
+  padding: 4px;
+  text-align: left;
 }
 
-.signature-box {
-  margin-top: 50px;
-  text-align: center;
-}
-
-.signature-line {
-  width: 200px;
-  border-bottom: 1px solid #000;
-  margin: 10px auto 0 auto;
-  height: 30px;
-}
-
-.no-print {
-  margin-top: 20px;
+.page-break {
+  page-break-after: always;
 }
 
 @media print {
   .no-print {
     display: none;
-  }
-  body {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  .report-table {
-    page-break-after: auto;
-  }
-  .report-table tr {
-    page-break-inside: avoid;
-    page-break-after: auto;
   }
 }
 </style>
