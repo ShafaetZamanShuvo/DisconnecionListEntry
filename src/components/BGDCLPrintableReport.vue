@@ -5,7 +5,7 @@
       <button @click="goBack" class="btn btn-secondary">
         <i class="fas fa-arrow-left"></i> ফিরে যান
       </button>
-      <button @click="printReport" class="btn btn-success">
+      <button @click="generateDocx" class="btn btn-success">
         <i class="fas fa-print"></i> প্রিন্ট করুন
       </button>
     </div>
@@ -118,6 +118,8 @@
 </template>
 
 <script>
+import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, HeadingLevel, AlignmentType } from "docx";
+import { saveAs } from "file-saver";
 export default {
   name: "BGDCLPrintableReport",
   props: {
@@ -153,6 +155,118 @@ export default {
     }
   },
   methods: {
+    async generateDocx() {
+      const chunkSize = 15;
+      const chunks = [];
+      for (let i = 0; i < this.entries.length; i += chunkSize) {
+        chunks.push(this.entries.slice(i, i + chunkSize));
+      }
+
+      const docSections = chunks.map((pageEntries, pageIndex) => {
+        // Create table rows for this page
+        const headerRow = new TableRow({
+          children: [
+            new TableCell({ width: { size: 5, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: "ক্রমিক", bold: true, alignment: AlignmentType.CENTER })] }),
+            new TableCell({ width: { size: 10, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: "কোড", bold: true, alignment: AlignmentType.CENTER })] }),
+            new TableCell({ width: { size: 25, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: "নাম, ঠিকানা ও অবস্থান", bold: true, alignment: AlignmentType.CENTER })] }),
+            new TableCell({ width: { size: 10, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: "অনুমোদিত বার্নার", bold: true, alignment: AlignmentType.CENTER })] }),
+            new TableCell({ width: { size: 10, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: "পাওয়া বার্নার", bold: true, alignment: AlignmentType.CENTER })] }),
+            new TableCell({ width: { size: 10, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: "বকেয়া", bold: true, alignment: AlignmentType.CENTER })] }),
+            new TableCell({ width: { size: 20, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: "মন্তব্য", bold: true, alignment: AlignmentType.CENTER })] }),
+          ],
+        });
+
+        const dataRows = pageEntries.map((entry, idx) =>
+          new TableRow({
+            children: [
+              new TableCell({ children: [new Paragraph(String(idx + 1 + pageIndex * chunkSize))] }),
+              new TableCell({ children: [new Paragraph(entry.customerCode || "")] }),
+              new TableCell({
+                children: [
+                  new Paragraph(entry.customerName || ""),
+                  new Paragraph(entry.customerAddress || ""),
+                  entry.location
+                    ? new Paragraph(`(${entry.location.latitude.toFixed(6)}, ${entry.location.longitude.toFixed(6)})`)
+                    : new Paragraph(""),
+                ],
+              }),
+              new TableCell({ children: [new Paragraph(entry.approvedBurner || "")] }),
+              new TableCell({ children: [new Paragraph(entry.burnerFound || "")] }),
+              new TableCell({ children: [new Paragraph(entry.due && entry.due !== "0" ? `৳${entry.due}` : "নেই")] }),
+              new TableCell({ children: [new Paragraph(entry.remarks || "নেই")] }),
+            ],
+          })
+        );
+
+        // Fill empty rows to keep table uniform height
+        const emptyRowsCount = chunkSize - pageEntries.length;
+        const emptyRows = Array.from({ length: emptyRowsCount }).map(() =>
+          new TableRow({
+            children: Array(7)
+              .fill(null)
+              .map(() => new TableCell({ children: [new Paragraph("")] })),
+          })
+        );
+
+        // Summary paragraph for this page
+        const summaryParagraph = new Paragraph({
+          children: [
+            new TextRun({
+              text: `পৃষ্ঠা: ${pageIndex + 1} / ${chunks.length} | মোট পরিদর্শন: ${this.entries.length} | মোট বকেয়া: ৳${this.totalDue}`,
+              bold: true,
+            }),
+          ],
+          spacing: { before: 300, after: 300 },
+        });
+
+        return {
+          children: [
+            new Paragraph({
+              text: "বাখরাবাদ গ্যাস ডিস্ট্রিবিউশন কোম্পানী লিমিটেড",
+              heading: HeadingLevel.HEADING1,
+              alignment: AlignmentType.CENTER,
+            }),
+            new Paragraph({
+              text: "(পেট্রোবাংলার একটি কোম্পানি)",
+              alignment: AlignmentType.CENTER,
+              spacing: { after: 200 },
+            }),
+            new Paragraph({
+              text: "ফিল্ড সার্ভে রিপোর্ট",
+              heading: HeadingLevel.HEADING2,
+              alignment: AlignmentType.CENTER,
+              spacing: { after: 400 },
+            }),
+            new Table({
+              rows: [headerRow, ...dataRows, ...emptyRows],
+              width: { size: 100, type: WidthType.PERCENTAGE },
+              borders: {
+                top: { size: 1, color: "000000" },
+                bottom: { size: 1, color: "000000" },
+                left: { size: 1, color: "000000" },
+                right: { size: 1, color: "000000" },
+                insideHorizontal: { size: 1, color: "000000" },
+                insideVertical: { size: 1, color: "000000" },
+              },
+            }),
+            summaryParagraph,
+            new Paragraph({ text: "", pageBreakAfter: true }),
+          ],
+        };
+      });
+
+      // Create the full document with all sections (pages)
+      const doc = new Document({
+        sections: docSections.map((section) => ({
+          properties: {},
+          children: section.children,
+        })),
+      });
+
+      // Generate and download the docx
+      const blob = await Packer.toBlob(doc);
+      saveAs(blob, `Field_Survey_Report_${new Date().toISOString().slice(0, 10)}.docx`);
+    },
     printReport() {
       window.print();
     },
