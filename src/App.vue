@@ -133,10 +133,7 @@ I have vue3 app this is App.js
               <i class="fas fa-print me-2"></i>প্রিন্ট
             </button>
             <!-- Button to clear all entries -->
-            <button
-              class="btn btn-danger"
-              @click="clearAllEntries"
-            >
+            <button class="btn btn-danger" @click="clearAllEntries">
               <i class="fas fa-trash-alt me-2"></i>সব মুছুন
             </button>
           </div>
@@ -167,9 +164,10 @@ I have vue3 app this is App.js
                     </span>
                   </div>
                   <div class="d-flex justify-content-start mt-2">
-                    <button class="btn btn-info btn-sm" @click="toggleView">
-                      <i class="fas fa-edit"></i> এডিট করুন
-                    </button>
+                    <button class="btn btn-info btn-sm" @click="editEntry(entry, index)">
+  <i class="fas fa-edit"></i> এডিট করুন
+</button>
+
                     <button
                       class="btn btn-danger btn-sm"
                       @click="deleteEntry(index)"
@@ -223,6 +221,7 @@ export default {
     return {
       showForm: true,
       showPrintView: false,
+      editIndex: null,
       currentEntry: {
         customerCode: "",
         customerName: "",
@@ -243,6 +242,12 @@ export default {
   },
 
   methods: {
+    editEntry(entry, index) {
+  this.currentEntry = { ...entry }; // Clone entry data
+  this.editIndex = index;           // Track index for replacement
+  this.showForm = true;             // Switch to form view
+},
+
     clearAllEntries() {
       if (confirm("আপনি কি নিশ্চিত যে সব এন্ট্রি মুছতে চান?")) {
         this.entries = [];
@@ -251,27 +256,28 @@ export default {
       }
     },
     saveEntry() {
-      // Check if location is required and not provided
-      if (!this.currentEntry.location) {
-        alert("অবস্থান নেওয়া বাধ্যতামূলক! অনুগ্রহ করে প্রথমে অবস্থান নিন।");
-        return;
-      }
+  if (!this.currentEntry.location) {
+    alert("অবস্থান নেওয়া বাধ্যতামূলক! অনুগ্রহ করে প্রথমে অবস্থান নিন।");
+    return;
+  }
 
-      // Add timestamp
-      this.currentEntry.timestamp = new Date().toISOString();
+  this.currentEntry.timestamp = new Date().toISOString();
 
-      // Add to entries array
-      this.entries.push({ ...this.currentEntry });
+  if (this.editIndex !== null) {
+    // ✅ Update existing entry
+    this.entries.splice(this.editIndex, 1, { ...this.currentEntry });
+    this.editIndex = null;
+    alert("ডাটা সফলভাবে আপডেট হয়েছে!");
+  } else {
+    // ✅ Add new entry
+    this.entries.push({ ...this.currentEntry });
+    alert("ডাটা সফলভাবে সংরক্ষিত হয়েছে!");
+  }
 
-      // Save to localStorage
-      this.saveData();
+  this.saveData();
+  this.resetForm();
+},
 
-      // Reset form
-      this.resetForm();
-
-      // Show success message
-      alert("ডাটা সফলভাবে সংরক্ষিত হয়েছে!");
-    },
 
     deleteEntry(index) {
       if (confirm("আপনি কি নিশ্চিত যে এই এন্ট্রি মুছতে চান?")) {
