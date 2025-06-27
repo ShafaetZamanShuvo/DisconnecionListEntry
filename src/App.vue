@@ -1,5 +1,3 @@
-I have vue3 app this is App.js
-
 <template>
   <div class="app">
     <div v-if="!showPrintView">
@@ -19,7 +17,8 @@ I have vue3 app this is App.js
         <!-- Data Entry Form -->
         <div class="form-card" v-if="showForm">
           <h4 class="mb-3">
-            <i class="fas fa-plus-circle me-2"></i>নতুন এন্ট্রি
+            <i class="fas fa-plus-circle me-2"></i>
+            {{ editIndex !== null ? 'এন্ট্রি এডিট করুন' : 'নতুন এন্ট্রি' }}
           </h4>
 
           <form @submit.prevent="saveEntry">
@@ -103,6 +102,7 @@ I have vue3 app this is App.js
               </button>
               <div v-if="currentEntry.location" class="location-badge">
                 <i class="fas fa-check-circle me-1"></i>অবস্থান সংরক্ষিত
+                ({{ currentEntry.location.latitude.toFixed(4) }}, {{ currentEntry.location.longitude.toFixed(4) }})
               </div>
               <div v-else class="text-danger small">
                 <i class="fas fa-exclamation-triangle me-1"></i>অবস্থান নেওয়া
@@ -112,14 +112,16 @@ I have vue3 app this is App.js
 
             <div class="d-grid gap-2">
               <button type="submit" class="btn btn-primary">
-                <i class="fas fa-save me-2"></i>সংরক্ষণ করুন
+                <i class="fas fa-save me-2"></i>
+                {{ editIndex !== null ? 'আপডেট করুন' : 'সংরক্ষণ করুন' }}
               </button>
               <button
                 type="button"
                 class="btn btn-secondary"
-                @click="resetForm"
+                @click="cancelEdit"
               >
-                <i class="fas fa-redo me-2"></i>রিসেট করুন
+                <i class="fas fa-times me-2"></i>
+                {{ editIndex !== null ? 'বাতিল করুন' : 'রিসেট করুন' }}
               </button>
             </div>
           </form>
@@ -129,13 +131,15 @@ I have vue3 app this is App.js
         <div class="form-card" v-if="!showForm">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h4><i class="fas fa-list me-2"></i>সংরক্ষিত ডাটা</h4>
-            <button class="btn btn-success" @click="generatePrintableReport">
-              <i class="fas fa-print me-2"></i>প্রিন্ট
-            </button>
-            <!-- Button to clear all entries -->
-            <button class="btn btn-danger" @click="clearAllEntries">
-              <i class="fas fa-trash-alt me-2"></i>সব মুছুন
-            </button>
+            <div>
+              <button class="btn btn-success me-2" @click="generatePrintableReport">
+                <i class="fas fa-print me-2"></i>প্রিন্ট
+              </button>
+              <!-- Button to clear all entries -->
+              <button class="btn btn-danger" @click="clearAllEntries">
+                <i class="fas fa-trash-alt me-2"></i>সব মুছুন
+              </button>
+            </div>
           </div>
 
           <div class="data-list" v-if="entries.length > 0">
@@ -164,9 +168,12 @@ I have vue3 app this is App.js
                     </span>
                   </div>
                   <div class="d-flex justify-content-start mt-2">
-                    <button class="btn btn-info btn-sm" @click="editEntry(entry, index)">
-  <i class="fas fa-edit"></i> এডিট করুন
-</button>
+                    <button
+                      class="btn btn-info btn-sm me-2"
+                      @click="editEntry(entry, index)"
+                    >
+                      <i class="fas fa-edit"></i> এডিট করুন
+                    </button>
 
                     <button
                       class="btn btn-danger btn-sm"
@@ -243,10 +250,37 @@ export default {
 
   methods: {
     editEntry(entry, index) {
-  this.currentEntry = { ...entry }; // Clone entry data
-  this.editIndex = index;           // Track index for replacement
-  this.showForm = true;             // Switch to form view
-},
+      // Set edit mode first
+      this.editIndex = index;
+      
+      // Deep clone the entry to avoid reference issues
+      this.currentEntry = {
+        customerCode: entry.customerCode || "",
+        customerName: entry.customerName || "",
+        customerAddress: entry.customerAddress || "",
+        approvedBurner: entry.approvedBurner || "",
+        burnerFound: entry.burnerFound || "",
+        due: entry.due || "",
+        remarks: entry.remarks || "",
+        location: entry.location ? { ...entry.location } : null,
+        timestamp: entry.timestamp
+      };
+      
+      // Switch to form view
+      this.showForm = true;
+    },
+
+    cancelEdit() {
+      if (this.editIndex !== null) {
+        // If editing, just cancel and go back to list
+        this.editIndex = null;
+        this.resetForm();
+        this.showForm = false;
+      } else {
+        // If adding new, just reset the form
+        this.resetForm();
+      }
+    },
 
     clearAllEntries() {
       if (confirm("আপনি কি নিশ্চিত যে সব এন্ট্রি মুছতে চান?")) {
@@ -255,29 +289,33 @@ export default {
         alert("সব এন্ট্রি সফলভাবে মুছে ফেলা হয়েছে!");
       }
     },
+
     saveEntry() {
-  if (!this.currentEntry.location) {
-    alert("অবস্থান নেওয়া বাধ্যতামূলক! অনুগ্রহ করে প্রথমে অবস্থান নিন।");
-    return;
-  }
+      if (!this.currentEntry.location) {
+        alert("অবস্থান নেওয়া বাধ্যতামূলক! অনুগ্রহ করে প্রথমে অবস্থান নিন।");
+        return;
+      }
 
-  this.currentEntry.timestamp = new Date().toISOString();
+      // Only update timestamp for new entries
+      if (this.editIndex === null) {
+        this.currentEntry.timestamp = new Date().toISOString();
+      }
 
-  if (this.editIndex !== null) {
-    // ✅ Update existing entry
-    this.entries.splice(this.editIndex, 1, { ...this.currentEntry });
-    this.editIndex = null;
-    alert("ডাটা সফলভাবে আপডেট হয়েছে!");
-  } else {
-    // ✅ Add new entry
-    this.entries.push({ ...this.currentEntry });
-    alert("ডাটা সফলভাবে সংরক্ষিত হয়েছে!");
-  }
+      if (this.editIndex !== null) {
+        // Update existing entry
+        this.entries.splice(this.editIndex, 1, { ...this.currentEntry });
+        this.editIndex = null;
+        alert("ডাটা সফলভাবে আপডেট হয়েছে!");
+        this.showForm = false; // Go back to list after editing
+      } else {
+        // Add new entry
+        this.entries.push({ ...this.currentEntry });
+        alert("ডাটা সফলভাবে সংরক্ষিত হয়েছে!");
+      }
 
-  this.saveData();
-  this.resetForm();
-},
-
+      this.saveData();
+      this.resetForm();
+    },
 
     deleteEntry(index) {
       if (confirm("আপনি কি নিশ্চিত যে এই এন্ট্রি মুছতে চান?")) {
@@ -321,7 +359,21 @@ export default {
     },
 
     toggleView() {
-      this.showForm = !this.showForm;
+      if (this.showForm && this.editIndex !== null) {
+        // If currently editing, ask for confirmation
+        if (confirm("আপনি কি এডিট বাতিল করতে চান?")) {
+          this.editIndex = null;
+          this.resetForm();
+          this.showForm = false;
+        }
+      } else {
+        this.showForm = !this.showForm;
+        if (this.showForm) {
+          // Reset when showing form
+          this.editIndex = null;
+          this.resetForm();
+        }
+      }
     },
 
     saveData() {
