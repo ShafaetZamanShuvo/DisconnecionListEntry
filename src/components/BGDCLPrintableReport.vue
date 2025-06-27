@@ -65,7 +65,7 @@
             <td class="approved-cell">{{ entry.approvedBurner }}</td>
             <td class="found-cell">{{ entry.burnerFound }}</td>
             <td class="due-cell">
-              <span v-if="entry.due" class="due-amount">৳{{ entry.due }}</span>
+              <span v-if="entry.due && entry.due !== '0'" class="due-amount">৳{{ entry.due }}</span>
               <span v-else class="no-due">নেই</span>
             </td>
             <td class="remarks-cell">{{ entry.remarks || 'নেই' }}</td>
@@ -217,7 +217,7 @@ export default {
   box-sizing: border-box;
   position: relative;
   break-inside: avoid;
-  border: 1px solid  #dee2e6;
+  border: 1px solid #dee2e6;
 }
 
 .print-header {
@@ -227,7 +227,6 @@ export default {
   padding-bottom: 15px;
   border-bottom: 3px solid #007bff;
 }
-
 
 .header-content {
   flex: 1;
@@ -278,12 +277,13 @@ export default {
 }
 
 .table-header th {
-  background-color: #343a40; /* dark background */
-  color: white;              /* white text */
+  background-color: #343a40;
+  color: white;
   padding: 12px 8px;
   text-align: center;
   font-weight: 600;
   border-right: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0;
 }
 
 .table-header th:first-child {
@@ -367,26 +367,22 @@ export default {
 }
 
 .empty-row {
-  height: 25px;
-  background-color: #fafafa;
-}
-
-.empty-row:nth-child(even) {
-  background-color: #f5f5f5;
+  height: 20px !important;
+  background-color: transparent !important;
 }
 
 .summary-section {
   display: flex;
   justify-content: space-between;
   background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-  padding: 15px;
+  padding: 10px;
   border-radius: 8px;
   margin-bottom: 20px;
   border: 1px solid #dee2e6;
+  font-size: 12px;
 }
 
 .summary-item {
-  font-size: 14px;
   font-weight: 600;
   color: #2c3e50;
 }
@@ -394,7 +390,8 @@ export default {
 .print-footer {
   margin-top: auto;
   border-top: 2px solid #dee2e6;
-  padding-top: 15px;
+  padding-top: 10px;
+  font-size: 12px;
 }
 
 .signature-section {
@@ -441,6 +438,12 @@ export default {
     size: A4;
     margin: 0;
   }
+
+  body, html {
+    margin: 0;
+    padding: 0;
+  }
+
   .no-print {
     display: none !important;
   }
@@ -451,12 +454,29 @@ export default {
   
   .print-page {
     margin: 0;
+    padding: 10mm 8mm;
     box-shadow: none;
+    min-height: auto;
+    height: auto;
     page-break-after: always;
+    break-inside: avoid;
+    overflow: visible;
+    border: 1px solid #ccc;
   }
   
   .print-page:last-child {
     page-break-after: auto;
+  }
+  
+  .empty-row {
+    height: 20px !important;
+    background-color: transparent !important;
+  }
+  
+  .summary-section,
+  .print-footer {
+    padding: 5px 10px;
+    font-size: 12px;
   }
   
   .data-row:hover {
@@ -500,6 +520,5 @@ export default {
     flex-direction: column;
     text-align: center;
   }
-
 }
 </style>
