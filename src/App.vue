@@ -132,6 +132,13 @@ I have vue3 app this is App.js
             <button class="btn btn-success" @click="generatePrintableReport">
               <i class="fas fa-print me-2"></i>প্রিন্ট
             </button>
+            <!-- Button to clear all entries -->
+            <button
+              class="btn btn-danger"
+              @click="clearAllEntries"
+            >
+              <i class="fas fa-trash-alt me-2"></i>সব মুছুন
+            </button>
           </div>
 
           <div class="data-list" v-if="entries.length > 0">
@@ -236,6 +243,13 @@ export default {
   },
 
   methods: {
+    clearAllEntries() {
+      if (confirm("আপনি কি নিশ্চিত যে সব এন্ট্রি মুছতে চান?")) {
+        this.entries = [];
+        this.saveData();
+        alert("সব এন্ট্রি সফলভাবে মুছে ফেলা হয়েছে!");
+      }
+    },
     saveEntry() {
       // Check if location is required and not provided
       if (!this.currentEntry.location) {
