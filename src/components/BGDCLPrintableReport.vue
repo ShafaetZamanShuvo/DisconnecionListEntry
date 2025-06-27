@@ -22,6 +22,7 @@
           <th>অনুমোদিত বার্নার</th>
           <th>প্রাপ্ত বার্নার</th>
           <th>বকেয়া বিবরণ</th>
+          <th>মন্তব্য</th>
         </tr>
       </thead>
       <tbody>
@@ -38,6 +39,7 @@
           <td>{{ entry.approvedBurner }}</td>
           <td>{{ entry.burnerFound }}</td>
           <td>{{ entry.due || 'নেই' }}</td>
+          <td>{{ entry.remarks || 'নেই' }}</td>
         </tr>
       </tbody>
     </table>
