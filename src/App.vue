@@ -18,7 +18,7 @@
         <div class="form-card" v-if="showForm">
           <h4 class="mb-3">
             <i class="fas fa-plus-circle me-2"></i>
-            {{ editIndex !== null ? 'এন্ট্রি এডিট করুন' : 'নতুন এন্ট্রি' }}
+            {{ editIndex !== null ? "এন্ট্রি এডিট করুন" : "নতুন এন্ট্রি" }}
           </h4>
 
           <form @submit.prevent="saveEntry">
@@ -101,8 +101,9 @@
                 <i class="fas fa-map-marker-alt me-2"></i>বর্তমান অবস্থান নিন
               </button>
               <div v-if="currentEntry.location" class="location-badge">
-                <i class="fas fa-check-circle me-1"></i>অবস্থান সংরক্ষিত
-                ({{ currentEntry.location.latitude.toFixed(4) }}, {{ currentEntry.location.longitude.toFixed(4) }})
+                <i class="fas fa-check-circle me-1"></i>অবস্থান সংরক্ষিত ({{
+                  currentEntry.location.latitude.toFixed(4)
+                }}, {{ currentEntry.location.longitude.toFixed(4) }})
               </div>
               <div v-else class="text-danger small">
                 <i class="fas fa-exclamation-triangle me-1"></i>অবস্থান নেওয়া
@@ -113,7 +114,7 @@
             <div class="d-grid gap-2">
               <button type="submit" class="btn btn-primary">
                 <i class="fas fa-save me-2"></i>
-                {{ editIndex !== null ? 'আপডেট করুন' : 'সংরক্ষণ করুন' }}
+                {{ editIndex !== null ? "আপডেট করুন" : "সংরক্ষণ করুন" }}
               </button>
               <button
                 type="button"
@@ -121,7 +122,7 @@
                 @click="cancelEdit"
               >
                 <i class="fas fa-times me-2"></i>
-                {{ editIndex !== null ? 'বাতিল করুন' : 'রিসেট করুন' }}
+                {{ editIndex !== null ? "বাতিল করুন" : "রিসেট করুন" }}
               </button>
             </div>
           </form>
@@ -132,7 +133,10 @@
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h4><i class="fas fa-list me-2"></i>সংরক্ষিত ডাটা</h4>
             <div>
-              <button class="btn btn-success me-2" @click="generatePrintableReport">
+              <button
+                class="btn btn-success me-2"
+                @click="generatePrintableReport"
+              >
                 <i class="fas fa-print me-2"></i>প্রিন্ট
               </button>
               <!-- Button to clear all entries -->
@@ -141,6 +145,15 @@
               </button>
             </div>
           </div>
+
+         <div v-if="showReportIssue">
+      <ReportIssue
+        v-if="showReportIssue"
+        :entry="selectedEntry"
+        :index="selectedIndex"
+        @close="showReportIssue = false"
+      />
+    </div>
 
           <div class="data-list" v-if="entries.length > 0">
             <div
@@ -181,6 +194,13 @@
                     >
                       <i class="fas fa-trash-alt"></i> মুছুন
                     </button>
+                    <button
+                      class="btn btn-warning btn-sm"
+                      @click="reportIssue(entry, index)"
+                      style="margin-left: 10px"
+                    >
+                      <i class="fas fa-info"></i> রিপোর্ট করুন
+                    </button>
                   </div>
                 </div>
               </div>
@@ -214,21 +234,26 @@
       :entries="entries"
       @close="showPrintView = false"
     />
+    
   </div>
 </template>
 
 <script>
 import { Document, Packer, Paragraph, TextRun } from "docx";
 import BGDCLPrintableReport from "./components/BGDCLPrintableReport.vue";
+import ReportIssue from "./components/ReportIssue.vue";
 
 export default {
   name: "App",
-  components: { BGDCLPrintableReport },
+  components: { BGDCLPrintableReport, ReportIssue },
   data() {
     return {
       showForm: true,
       showPrintView: false,
       editIndex: null,
+      showReportIssue: false,
+      selectedEntry: {},
+      selectedIndex: null,
       currentEntry: {
         customerCode: "",
         customerName: "",
@@ -249,10 +274,15 @@ export default {
   },
 
   methods: {
+    reportIssue(entry, index) {
+      this.selectedEntry = entry;
+      this.selectedIndex = index;
+      this.showReportIssue = true;
+    },
     editEntry(entry, index) {
       // Set edit mode first
       this.editIndex = index;
-      
+
       // Deep clone the entry to avoid reference issues
       this.currentEntry = {
         customerCode: entry.customerCode || "",
@@ -263,9 +293,9 @@ export default {
         due: entry.due || "",
         remarks: entry.remarks || "",
         location: entry.location ? { ...entry.location } : null,
-        timestamp: entry.timestamp
+        timestamp: entry.timestamp,
       };
-      
+
       // Switch to form view
       this.showForm = true;
     },
