@@ -1,200 +1,221 @@
-I have vue3 app
-
-this is App.js
+I have vue3 app this is App.js
 
 <template>
   <div class="app">
-    <div class="app-header">
-      <h2><i class="fas fa-clipboard-list me-2"></i>ডাটা এন্ট্রি অ্যাপ</h2>
-    </div>
-
-    <div class="form-container">
-      <!-- Statistics -->
-      <div class="stats-card">
-        <h4>
-          <i class="fas fa-chart-bar me-2"></i>মোট এন্ট্রি: {{ entries.length }}
-        </h4>
+    <div v-if="!showPrintView">
+      <div class="app-header">
+        <h2><i class="fas fa-clipboard-list me-2"></i>ডাটা এন্ট্রি অ্যাপ</h2>
       </div>
 
-      <!-- Data Entry Form -->
-      <div class="form-card" v-if="showForm">
-        <h4 class="mb-3">
-          <i class="fas fa-plus-circle me-2"></i>নতুন এন্ট্রি
-        </h4>
-
-        <form @submit.prevent="saveEntry">
-          <div class="mb-3">
-            <label class="form-label">কাস্টমার কোড *</label>
-            <input
-              type="text"
-              class="form-control"
-              v-model="currentEntry.customerCode"
-              required
-            />
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">কাস্টমার নাম *</label>
-            <textarea
-              class="form-control"
-              rows="1"
-              v-model="currentEntry.customerName"
-              required
-            ></textarea>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">কাস্টমার ঠিকানা *</label>
-            <textarea
-              class="form-control"
-              rows="2"
-              v-model="currentEntry.customerAddress"
-              required
-            ></textarea>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">অনুমোদিত বার্নার *</label>
-            <input
-              type="text"
-              class="form-control"
-              v-model="currentEntry.approvedBurner"
-              required
-            />
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">বার্নার পাওয়া গেছে *</label>
-            <input
-              type="text"
-              class="form-control"
-              v-model="currentEntry.burnerFound"
-              required
-            />
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">বকেয়া</label>
-            <input
-              type="number"
-              step="0.01"
-              class="form-control"
-              v-model="currentEntry.due"
-            />
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">মন্তব্য</label>
-            <textarea
-              class="form-control"
-              rows="2"
-              v-model="currentEntry.remarks"
-            ></textarea>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">অবস্থান *</label>
-            <button
-              type="button"
-              class="btn btn-info w-100 mb-2"
-              @click="getCurrentLocation"
-            >
-              <i class="fas fa-map-marker-alt me-2"></i>বর্তমান অবস্থান নিন
-            </button>
-            <div v-if="currentEntry.location" class="location-badge">
-              <i class="fas fa-check-circle me-1"></i>অবস্থান সংরক্ষিত
-            </div>
-            <div v-else class="text-danger small">
-              <i class="fas fa-exclamation-triangle me-1"></i>অবস্থান নেওয়া
-              বাধ্যতামূলক
-            </div>
-          </div>
-
-          <div class="d-grid gap-2">
-            <button type="submit" class="btn btn-primary">
-              <i class="fas fa-save me-2"></i>সংরক্ষণ করুন
-            </button>
-            <button type="button" class="btn btn-secondary" @click="resetForm">
-              <i class="fas fa-redo me-2"></i>রিসেট করুন
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <!-- Data List -->
-      <div class="form-card" v-if="!showForm">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h4><i class="fas fa-list me-2"></i>সংরক্ষিত ডাটা</h4>
-          <button class="btn btn-success" @click="downloadData()">
-            <i class="fas fa-download me-2"></i>ডাউনলোড
-          </button>
+      <div class="form-container">
+        <!-- Statistics -->
+        <div class="stats-card">
+          <h4>
+            <i class="fas fa-chart-bar me-2"></i>মোট এন্ট্রি:
+            {{ entries.length }}
+          </h4>
         </div>
 
-        <div class="data-list" v-if="entries.length > 0">
-          <div v-for="(entry, index) in entries" :key="index" class="data-item">
-            <div class="row">
-              <div class="col-12">
-                <strong>কোড:</strong> {{ entry.customerCode }}<br />
-                <strong>নাম:</strong> {{ entry.customerName }}<br />
-                <strong>ঠিকানা:</strong> {{ entry.customerAddress }}<br />
-                <strong>অনুমোদিত বার্নার:</strong> {{ entry.approvedBurner
-                }}<br />
-                <strong>পাওয়া বার্নার:</strong> {{ entry.burnerFound }}<br />
-                <strong>বকেয়া:</strong> {{ entry.due ? "৳" + entry.due : "নেই"
-                }}<br />
-                <strong>মন্তব্য:</strong> {{ entry.remarks || "নেই" }}<br />
-                <strong>সময়:</strong> {{ formatDate(entry.timestamp) }}<br />
-                <div v-if="entry.location" class="mt-2">
-                  <span class="location-badge">
-                    <i class="fas fa-map-marker-alt me-1"></i>
-                    {{ entry.location.latitude.toFixed(7) }},
-                    {{ entry.location.longitude.toFixed(7) }}
-                  </span>
-                </div>
-                <div class="d-flex justify-content-start mt-2">
-                  <button class="btn btn-info btn-sm" @click="toggleView">
-                    <i class="fas fa-edit"></i> এডিট করুন
-                  </button>
-                  <button
-                    class="btn btn-danger btn-sm"
-                    @click="deleteEntry(index)"
-                  >
-                    <i class="fas fa-trash-alt"></i> মুছুন
-                  </button>
+        <!-- Data Entry Form -->
+        <div class="form-card" v-if="showForm">
+          <h4 class="mb-3">
+            <i class="fas fa-plus-circle me-2"></i>নতুন এন্ট্রি
+          </h4>
+
+          <form @submit.prevent="saveEntry">
+            <div class="mb-3">
+              <label class="form-label">কাস্টমার কোড *</label>
+              <input
+                type="text"
+                class="form-control"
+                v-model="currentEntry.customerCode"
+                required
+              />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">কাস্টমার নাম *</label>
+              <textarea
+                class="form-control"
+                rows="1"
+                v-model="currentEntry.customerName"
+                required
+              ></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">কাস্টমার ঠিকানা *</label>
+              <textarea
+                class="form-control"
+                rows="2"
+                v-model="currentEntry.customerAddress"
+                required
+              ></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">অনুমোদিত বার্নার *</label>
+              <input
+                type="text"
+                class="form-control"
+                v-model="currentEntry.approvedBurner"
+                required
+              />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">বার্নার পাওয়া গেছে *</label>
+              <input
+                type="text"
+                class="form-control"
+                v-model="currentEntry.burnerFound"
+                required
+              />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">বকেয়া</label>
+              <input
+                type="number"
+                step="0.01"
+                class="form-control"
+                v-model="currentEntry.due"
+              />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">মন্তব্য</label>
+              <textarea
+                class="form-control"
+                rows="2"
+                v-model="currentEntry.remarks"
+              ></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">অবস্থান *</label>
+              <button
+                type="button"
+                class="btn btn-info w-100 mb-2"
+                @click="getCurrentLocation"
+              >
+                <i class="fas fa-map-marker-alt me-2"></i>বর্তমান অবস্থান নিন
+              </button>
+              <div v-if="currentEntry.location" class="location-badge">
+                <i class="fas fa-check-circle me-1"></i>অবস্থান সংরক্ষিত
+              </div>
+              <div v-else class="text-danger small">
+                <i class="fas fa-exclamation-triangle me-1"></i>অবস্থান নেওয়া
+                বাধ্যতামূলক
+              </div>
+            </div>
+
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-2"></i>সংরক্ষণ করুন
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                @click="resetForm"
+              >
+                <i class="fas fa-redo me-2"></i>রিসেট করুন
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Data List -->
+        <div class="form-card" v-if="!showForm">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4><i class="fas fa-list me-2"></i>সংরক্ষিত ডাটা</h4>
+            <button class="btn btn-success" @click="generatePrintableReport">
+              <i class="fas fa-print me-2"></i>প্রিন্ট
+            </button>
+          </div>
+
+          <div class="data-list" v-if="entries.length > 0">
+            <div
+              v-for="(entry, index) in entries"
+              :key="index"
+              class="data-item"
+            >
+              <div class="row">
+                <div class="col-12">
+                  <strong>কোড:</strong> {{ entry.customerCode }}<br />
+                  <strong>নাম:</strong> {{ entry.customerName }}<br />
+                  <strong>ঠিকানা:</strong> {{ entry.customerAddress }}<br />
+                  <strong>অনুমোদিত বার্নার:</strong> {{ entry.approvedBurner
+                  }}<br />
+                  <strong>পাওয়া বার্নার:</strong> {{ entry.burnerFound }}<br />
+                  <strong>বকেয়া:</strong>
+                  {{ entry.due ? "৳" + entry.due : "নেই" }}<br />
+                  <strong>মন্তব্য:</strong> {{ entry.remarks || "নেই" }}<br />
+                  <strong>সময়:</strong> {{ formatDate(entry.timestamp) }}<br />
+                  <div v-if="entry.location" class="mt-2">
+                    <span class="location-badge">
+                      <i class="fas fa-map-marker-alt me-1"></i>
+                      {{ entry.location.latitude.toFixed(7) }},
+                      {{ entry.location.longitude.toFixed(7) }}
+                    </span>
+                  </div>
+                  <div class="d-flex justify-content-start mt-2">
+                    <button class="btn btn-info btn-sm" @click="toggleView">
+                      <i class="fas fa-edit"></i> এডিট করুন
+                    </button>
+                    <button
+                      class="btn btn-danger btn-sm"
+                      @click="deleteEntry(index)"
+                    >
+                      <i class="fas fa-trash-alt"></i> মুছুন
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div v-else class="text-center text-muted py-4">
-          <i class="fas fa-inbox fa-3x mb-3"></i>
-          <p>কোন ডাটা নেই</p>
+          <div v-else class="text-center text-muted py-4">
+            <i class="fas fa-inbox fa-3x mb-3"></i>
+            <p>কোন ডাটা নেই</p>
+          </div>
         </div>
+      </div>
+
+      <!-- Floating Action Button -->
+      <div class="floating-action">
+        <button
+          class="btn btn-primary rounded-circle"
+          @click="toggleView"
+          style="width: 60px; height: 60px"
+        >
+          <i
+            :class="showForm ? 'fas fa-list' : 'fas fa-plus'"
+            class="fa-lg"
+          ></i>
+        </button>
       </div>
     </div>
 
-    <!-- Floating Action Button -->
-    <div class="floating-action">
-      <button
-        class="btn btn-primary rounded-circle"
-        @click="toggleView"
-        style="width: 60px; height: 60px"
-      >
-        <i :class="showForm ? 'fas fa-list' : 'fas fa-plus'" class="fa-lg"></i>
-      </button>
-    </div>
+    <BGDCLPrintableReport
+      v-if="showPrintView"
+      :entries="entries"
+      @close="showPrintView = false"
+    />
   </div>
 </template>
 
 <script>
 import { Document, Packer, Paragraph, TextRun } from "docx";
+import BGDCLPrintableReport from "./components/BGDCLPrintableReport.vue";
+
 export default {
-  
   name: "App",
+  components: { BGDCLPrintableReport },
   data() {
     return {
       showForm: true,
+      showPrintView: false,
       currentEntry: {
         customerCode: "",
         customerName: "",
@@ -294,64 +315,79 @@ export default {
       }
     },
 
+    generatePrintableReport() {
+    if (this.entries.length === 0) {
+      alert("প্রিন্ট করার জন্য কোন ডাটা নেই!");
+      return;
+    }
+    this.showPrintView = true;
+  },
+
     async downloadData() {
-  if (this.entries.length === 0) {
-    alert("ডাউনলোড করার জন্য কোন ডাটা নেই!");
-    return;
-  }
+      if (this.entries.length === 0) {
+        alert("ডাউনলোড করার জন্য কোন ডাটা নেই!");
+        return;
+      }
 
-  // Create a new DOCX document
-  const doc = new Document();
+      // Create a new DOCX document
+      const doc = new Document();
 
-  // Add a title
-  doc.addSection({
-    children: [
-      new Paragraph({
+      // Add a title
+      doc.addSection({
         children: [
-          new TextRun({
-            text: "ডাটা এন্ট্রি রিপোর্ট",
-            bold: true,
-            size: 36,
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "ডাটা এন্ট্রি রিপোর্ট",
+                bold: true,
+                size: 36,
+              }),
+            ],
           }),
+          ...this.entries.map(
+            (entry, idx) =>
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: `\nএন্ট্রি #${idx + 1}\n`,
+                    bold: true,
+                    size: 28,
+                  }),
+                  new TextRun(
+                    `কাস্টমার কোড: ${entry.customerCode}\n` +
+                      `কাস্টমার নাম: ${entry.customerName}\n` +
+                      `কাস্টমার ঠিকানা: ${entry.customerAddress}\n` +
+                      `অনুমোদিত বার্নার: ${entry.approvedBurner}\n` +
+                      `পাওয়া বার্নার: ${entry.burnerFound}\n` +
+                      `বকেয়া: ${entry.due || "নেই"}\n` +
+                      `মন্তব্য: ${entry.remarks || "নেই"}\n` +
+                      `অবস্থান: ${
+                        entry.location
+                          ? `${entry.location.latitude}, ${entry.location.longitude}`
+                          : "নেই"
+                      }\n` +
+                      `সময়: ${this.formatDate(entry.timestamp)}\n`
+                  ),
+                ],
+              })
+          ),
         ],
-      }),
-      ...this.entries.map((entry, idx) =>
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: `\nএন্ট্রি #${idx + 1}\n`,
-              bold: true,
-              size: 28,
-            }),
-            new TextRun(
-              `কাস্টমার কোড: ${entry.customerCode}\n` +
-              `কাস্টমার নাম: ${entry.customerName}\n` +
-              `কাস্টমার ঠিকানা: ${entry.customerAddress}\n` +
-              `অনুমোদিত বার্নার: ${entry.approvedBurner}\n` +
-              `পাওয়া বার্নার: ${entry.burnerFound}\n` +
-              `বকেয়া: ${entry.due || "নেই"}\n` +
-              `মন্তব্য: ${entry.remarks || "নেই"}\n` +
-              `অবস্থান: ${entry.location ? `${entry.location.latitude}, ${entry.location.longitude}` : "নেই"}\n` +
-              `সময়: ${this.formatDate(entry.timestamp)}\n`
-            ),
-          ],
-        })
-      ),
-    ],
-  });
+      });
 
-  // Generate the DOCX blob
-  const blob = await Packer.toBlob(doc);
+      // Generate the DOCX blob
+      const blob = await Packer.toBlob(doc);
 
-  // Download the DOCX
-  const link = document.createElement("a");
-  const url = URL.createObjectURL(blob);
-  link.href = url;
-  link.download = `data-entries-${new Date().toISOString().split("T")[0]}.docx`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-},
+      // Download the DOCX
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.href = url;
+      link.download = `data-entries-${
+        new Date().toISOString().split("T")[0]
+      }.docx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    },
 
     formatDate(timestamp) {
       if (!timestamp) return "";
