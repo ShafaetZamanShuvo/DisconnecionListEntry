@@ -18,11 +18,6 @@
     >
       <!-- Header -->
       <div class="print-header">
-        <div class="header-logo">
-          <div class="logo-placeholder">
-            <i class="fas fa-building fa-2x"></i>
-          </div>
-        </div>
         <div class="header-content">
           <h2 class="company-name">বাখরাবাদ গ্যাস ডিস্ট্রিবিউশন কোম্পানী লিমিটেড</h2>
           <p class="company-address">(পেট্রোবাংলার একটি কোম্পানি)</p>
@@ -92,10 +87,10 @@
       <!-- Summary Section -->
       <div class="summary-section">
         <div class="summary-item">
-          <strong>মোট এন্ট্রি:</strong> {{ entries.length }}
+          <strong>মোট পরিদর্শন:</strong> {{ entries.length }}
         </div>
         <div class="summary-item">
-          <strong>মোট বকেয়া:</strong> ৳{{ totalDue }}
+          <strong>মোট বকেয়া আদায়:</strong> ৳{{ totalDue }}
         </div>
       </div>
 
@@ -214,13 +209,15 @@ export default {
 
 .print-page {
   width: 210mm;
-  min-height: 297mm;
+  min-height: auto;
   padding: 15mm;
   margin: 20px auto;
   background: white;
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
   box-sizing: border-box;
   position: relative;
+  break-inside: avoid;
+  border: 1px solid  #dee2e6;
 }
 
 .print-header {
@@ -231,20 +228,6 @@ export default {
   border-bottom: 3px solid #007bff;
 }
 
-.header-logo {
-  margin-right: 20px;
-}
-
-.logo-placeholder {
-  width: 60px;
-  height: 60px;
-  background: linear-gradient(135deg, #007bff, #0056b3);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-}
 
 .header-content {
   flex: 1;
@@ -295,12 +278,16 @@ export default {
 }
 
 .table-header th {
-  background: linear-gradient(135deg, #007bff, #0056b3);
-  color: white;
+  background-color: #343a40; /* dark background */
+  color: white;              /* white text */
   padding: 12px 8px;
   text-align: center;
   font-weight: 600;
-  border-right: 1px solid rgba(255,255,255,0.2);
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.table-header th:first-child {
+  border-radius: 8px 0 0 0;
 }
 
 .table-header th:last-child {
@@ -450,6 +437,10 @@ export default {
 
 /* Print Styles */
 @media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
   .no-print {
     display: none !important;
   }
@@ -509,9 +500,6 @@ export default {
     flex-direction: column;
     text-align: center;
   }
-  
-  .header-logo {
-    margin: 0 0 15px 0;
-  }
+
 }
 </style>
