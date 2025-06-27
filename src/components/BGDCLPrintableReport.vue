@@ -19,14 +19,16 @@
       <!-- Header -->
       <div class="print-header">
         <div class="header-content">
-          <h2 class="company-name">বাখরাবাদ গ্যাস ডিস্ট্রিবিউশন কোম্পানী লিমিটেড</h2>
+          <h2 class="company-name">
+            বাখরাবাদ গ্যাস ডিস্ট্রিবিউশন কোম্পানী লিমিটেড
+          </h2>
           <p class="company-address">(পেট্রোবাংলার একটি কোম্পানি)</p>
           <h3 class="report-title">ফিল্ড সার্ভে রিপোর্ট</h3>
           <div class="report-info">
             <span class="team-info">
-              <strong>টীম নং:</strong> {{ teamNo }} | 
-              <strong>তারিখ:</strong> {{ currentDate }} | 
-              <strong>পৃষ্ঠা:</strong> {{ pageIndex + 1 }} / {{ paginatedEntries.length }}
+              <strong>টীম নং:</strong> {{ teamNo }} | <strong>তারিখ:</strong>
+              {{ currentDate }} | <strong>পৃষ্ঠা:</strong> {{ pageIndex + 1 }} /
+              {{ paginatedEntries.length }}
             </span>
           </div>
         </div>
@@ -58,21 +60,28 @@
                 <div class="customer-address">{{ entry.customerAddress }}</div>
                 <div v-if="entry.location" class="location-info">
                   <i class="fas fa-map-marker-alt"></i>
-                  {{ entry.location.latitude.toFixed(6) }}, {{ entry.location.longitude.toFixed(6) }}
+                  {{ entry.location.latitude.toFixed(6) }},
+                  {{ entry.location.longitude.toFixed(6) }}
                 </div>
               </div>
             </td>
             <td class="approved-cell">{{ entry.approvedBurner }}</td>
             <td class="found-cell">{{ entry.burnerFound }}</td>
             <td class="due-cell">
-              <span v-if="entry.due && entry.due !== '0'" class="due-amount">৳{{ entry.due }}</span>
+              <span v-if="entry.due && entry.due !== '0'" class="due-amount"
+                >৳{{ entry.due }}</span
+              >
               <span v-else class="no-due">নেই</span>
             </td>
-            <td class="remarks-cell">{{ entry.remarks || 'নেই' }}</td>
+            <td class="remarks-cell">{{ entry.remarks || "নেই" }}</td>
           </tr>
-          
+
           <!-- Fill empty rows to maintain 15 rows per page -->
-          <tr v-for="n in Math.max(0, 15 - pageEntries.length)" :key="'empty-' + n" class="empty-row">
+          <tr
+            v-for="n in Math.max(0, 15 - pageEntries.length)"
+            :key="'empty-' + n"
+            class="empty-row"
+          >
             <td>&nbsp;</td>
             <td>&nbsp;</td>
             <td>&nbsp;</td>
@@ -107,18 +116,35 @@
           </div>
         </div>
         <div class="footer-note">
-          <p>এই রিপোর্ট {{ new Date().toLocaleString('bn-BD') }} তারিখে তৈরি করা হয়েছে।</p>
+          <p>
+            এই রিপোর্ট {{ new Date().toLocaleString("bn-BD") }} তারিখে তৈরি করা
+            হয়েছে।
+          </p>
         </div>
       </div>
 
       <!-- Page Break -->
-      <div v-if="pageIndex < paginatedEntries.length - 1" class="page-break"></div>
+      <div
+        v-if="pageIndex < paginatedEntries.length - 1"
+        class="page-break"
+      ></div>
     </div>
   </div>
 </template>
 
 <script>
-import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, HeadingLevel, AlignmentType } from "docx";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  Table,
+  TableRow,
+  TableCell,
+  WidthType,
+  HeadingLevel,
+  AlignmentType,
+} from "docx";
 import { saveAs } from "file-saver";
 export default {
   name: "BGDCLPrintableReport",
@@ -135,9 +161,9 @@ export default {
   computed: {
     currentDate() {
       return new Date().toLocaleDateString("bn-BD", {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+        year: "numeric",
+        month: "long",
+        day: "numeric",
       });
     },
     paginatedEntries() {
@@ -149,10 +175,12 @@ export default {
       return chunks.length > 0 ? chunks : [[]];
     },
     totalDue() {
-      return this.entries.reduce((total, entry) => {
-        return total + (parseFloat(entry.due) || 0);
-      }, 0).toFixed(2);
-    }
+      return this.entries
+        .reduce((total, entry) => {
+          return total + (parseFloat(entry.due) || 0);
+        }, 0)
+        .toFixed(2);
+    },
   },
   methods: {
     async generateDocx() {
@@ -163,64 +191,179 @@ export default {
       }
 
       const docSections = chunks.map((pageEntries, pageIndex) => {
-        // Create table rows for this page
+        // Header row for table columns
         const headerRow = new TableRow({
           children: [
-            new TableCell({ width: { size: 5, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: "ক্রমিক", bold: true, alignment: AlignmentType.CENTER })] }),
-            new TableCell({ width: { size: 10, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: "কোড", bold: true, alignment: AlignmentType.CENTER })] }),
-            new TableCell({ width: { size: 25, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: "নাম, ঠিকানা ও অবস্থান", bold: true, alignment: AlignmentType.CENTER })] }),
-            new TableCell({ width: { size: 10, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: "অনুমোদিত বার্নার", bold: true, alignment: AlignmentType.CENTER })] }),
-            new TableCell({ width: { size: 10, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: "পাওয়া বার্নার", bold: true, alignment: AlignmentType.CENTER })] }),
-            new TableCell({ width: { size: 10, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: "বকেয়া", bold: true, alignment: AlignmentType.CENTER })] }),
-            new TableCell({ width: { size: 20, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: "মন্তব্য", bold: true, alignment: AlignmentType.CENTER })] }),
+            new TableCell({
+              width: { size: 5, type: WidthType.PERCENTAGE },
+              children: [
+                new Paragraph({
+                  text: "ক্রমিক",
+                  bold: true,
+                  alignment: AlignmentType.CENTER,
+                }),
+              ],
+            }),
+            new TableCell({
+              width: { size: 10, type: WidthType.PERCENTAGE },
+              children: [
+                new Paragraph({
+                  text: "কোড",
+                  bold: true,
+                  alignment: AlignmentType.CENTER,
+                }),
+              ],
+            }),
+            new TableCell({
+              width: { size: 25, type: WidthType.PERCENTAGE },
+              children: [
+                new Paragraph({
+                  text: "নাম, ঠিকানা ও অবস্থান",
+                  bold: true,
+                  alignment: AlignmentType.CENTER,
+                }),
+              ],
+            }),
+            new TableCell({
+              width: { size: 10, type: WidthType.PERCENTAGE },
+              children: [
+                new Paragraph({
+                  text: "অনুমোদিত বার্নার",
+                  bold: true,
+                  alignment: AlignmentType.CENTER,
+                }),
+              ],
+            }),
+            new TableCell({
+              width: { size: 10, type: WidthType.PERCENTAGE },
+              children: [
+                new Paragraph({
+                  text: "পাওয়া বার্নার",
+                  bold: true,
+                  alignment: AlignmentType.CENTER,
+                }),
+              ],
+            }),
+            new TableCell({
+              width: { size: 10, type: WidthType.PERCENTAGE },
+              children: [
+                new Paragraph({
+                  text: "বকেয়া",
+                  bold: true,
+                  alignment: AlignmentType.CENTER,
+                }),
+              ],
+            }),
+            new TableCell({
+              width: { size: 20, type: WidthType.PERCENTAGE },
+              children: [
+                new Paragraph({
+                  text: "মন্তব্য",
+                  bold: true,
+                  alignment: AlignmentType.CENTER,
+                }),
+              ],
+            }),
           ],
         });
 
-        const dataRows = pageEntries.map((entry, idx) =>
-          new TableRow({
-            children: [
-              new TableCell({ children: [new Paragraph(String(idx + 1 + pageIndex * chunkSize))] }),
-              new TableCell({ children: [new Paragraph(entry.customerCode || "")] }),
-              new TableCell({
-                children: [
-                  new Paragraph(entry.customerName || ""),
-                  new Paragraph(entry.customerAddress || ""),
-                  entry.location
-                    ? new Paragraph(`(${entry.location.latitude.toFixed(6)}, ${entry.location.longitude.toFixed(6)})`)
-                    : new Paragraph(""),
-                ],
-              }),
-              new TableCell({ children: [new Paragraph(entry.approvedBurner || "")] }),
-              new TableCell({ children: [new Paragraph(entry.burnerFound || "")] }),
-              new TableCell({ children: [new Paragraph(entry.due && entry.due !== "0" ? `৳${entry.due}` : "নেই")] }),
-              new TableCell({ children: [new Paragraph(entry.remarks || "নেই")] }),
-            ],
-          })
+        // Data rows
+        const dataRows = pageEntries.map(
+          (entry, idx) =>
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [
+                    new Paragraph(String(idx + 1 + pageIndex * chunkSize)),
+                  ],
+                }),
+                new TableCell({
+                  children: [new Paragraph(entry.customerCode || "")],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph(entry.customerName || ""),
+                    new Paragraph(entry.customerAddress || ""),
+                    entry.location
+                      ? new Paragraph(
+                          `(${entry.location.latitude.toFixed(
+                            6
+                          )}, ${entry.location.longitude.toFixed(6)})`
+                        )
+                      : new Paragraph(""),
+                  ],
+                }),
+                new TableCell({
+                  children: [new Paragraph(entry.approvedBurner || "")],
+                }),
+                new TableCell({
+                  children: [new Paragraph(entry.burnerFound || "")],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph(
+                      entry.due && entry.due !== "0" ? `৳${entry.due}` : "নেই"
+                    ),
+                  ],
+                }),
+                new TableCell({
+                  children: [new Paragraph(entry.remarks || "নেই")],
+                }),
+              ],
+              // Add borders to each data row cell
+              borders: {
+                top: { size: 1, color: "000000" },
+                bottom: { size: 1, color: "000000" },
+                left: { size: 1, color: "000000" },
+                right: { size: 1, color: "000000" },
+              },
+            })
         );
 
-        // Fill empty rows to keep table uniform height
+        // Empty rows to fill up to 15 entries
         const emptyRowsCount = chunkSize - pageEntries.length;
-        const emptyRows = Array.from({ length: emptyRowsCount }).map(() =>
-          new TableRow({
-            children: Array(7)
-              .fill(null)
-              .map(() => new TableCell({ children: [new Paragraph("")] })),
-          })
+        const emptyRows = Array.from({ length: emptyRowsCount }).map(
+          () =>
+            new TableRow({
+              children: Array(7)
+                .fill(null)
+                .map(() => new TableCell({ children: [new Paragraph("")] })),
+              borders: {
+                top: { size: 1, color: "000000" },
+                bottom: { size: 1, color: "000000" },
+                left: { size: 1, color: "000000" },
+                right: { size: 1, color: "000000" },
+              },
+            })
         );
 
-        // Summary paragraph for this page
+        // Team No header on each page
+        const teamNoParagraph = new Paragraph({
+          text: `টীম নং: ${this.teamNo}`,
+          bold: true,
+          spacing: { after: 200 },
+          alignment: AlignmentType.LEFT,
+        });
+
+        // Summary paragraph
         const summaryParagraph = new Paragraph({
           children: [
             new TextRun({
-              text: `পৃষ্ঠা: ${pageIndex + 1} / ${chunks.length} | মোট পরিদর্শন: ${this.entries.length} | মোট বকেয়া: ৳${this.totalDue}`,
+              text: `পৃষ্ঠা: ${pageIndex + 1} / ${
+                chunks.length
+              } | মোট পরিদর্শন: ${this.entries.length} | মোট বকেয়া: ৳${
+                this.totalDue
+              }`,
               bold: true,
             }),
           ],
           spacing: { before: 300, after: 300 },
+          alignment: AlignmentType.CENTER,
         });
 
         return {
           children: [
+            // Company name and report title
             new Paragraph({
               text: "বাখরাবাদ গ্যাস ডিস্ট্রিবিউশন কোম্পানী লিমিটেড",
               heading: HeadingLevel.HEADING1,
@@ -237,25 +380,34 @@ export default {
               alignment: AlignmentType.CENTER,
               spacing: { after: 400 },
             }),
+
+            // Team No
+            teamNoParagraph,
+
+            // Table
             new Table({
               rows: [headerRow, ...dataRows, ...emptyRows],
               width: { size: 100, type: WidthType.PERCENTAGE },
               borders: {
-                top: { size: 1, color: "000000" },
-                bottom: { size: 1, color: "000000" },
-                left: { size: 1, color: "000000" },
-                right: { size: 1, color: "000000" },
+                top: { size: 2, color: "000000" },
+                bottom: { size: 2, color: "000000" },
+                left: { size: 2, color: "000000" },
+                right: { size: 2, color: "000000" },
                 insideHorizontal: { size: 1, color: "000000" },
                 insideVertical: { size: 1, color: "000000" },
               },
             }),
+
+            // Summary
             summaryParagraph,
+
+            // Page break after each page
             new Paragraph({ text: "", pageBreakAfter: true }),
           ],
         };
       });
 
-      // Create the full document with all sections (pages)
+      // Create the document
       const doc = new Document({
         sections: docSections.map((section) => ({
           properties: {},
@@ -263,25 +415,29 @@ export default {
         })),
       });
 
-      // Generate and download the docx
+      // Generate and save the docx
       const blob = await Packer.toBlob(doc);
-      saveAs(blob, `Field_Survey_Report_${new Date().toISOString().slice(0, 10)}.docx`);
+      saveAs(
+        blob,
+        `Field_Survey_Report_${new Date().toISOString().slice(0, 10)}.docx`
+      );
     },
+
     printReport() {
       window.print();
     },
     goBack() {
-      this.$emit('close');
-    }
+      this.$emit("close");
+    },
   },
 };
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;600;700&display=swap");
 
 .report-container {
-  font-family: 'Noto Sans Bengali', 'Arial', sans-serif;
+  font-family: "Noto Sans Bengali", "Arial", sans-serif;
   background-color: #f8f9fa;
   min-height: 100vh;
 }
@@ -303,7 +459,7 @@ export default {
   font-size: 14px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .btn-secondary {
@@ -318,7 +474,7 @@ export default {
 
 .btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .print-page {
@@ -327,7 +483,7 @@ export default {
   padding: 15mm;
   margin: 20px auto;
   background: white;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
   position: relative;
   break-inside: avoid;
@@ -385,7 +541,7 @@ export default {
   border-collapse: collapse;
   font-size: 11px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -408,13 +564,27 @@ export default {
   border-right: none;
 }
 
-.col-serial { width: 8%; }
-.col-code { width: 12%; }
-.col-details { width: 30%; }
-.col-approved { width: 12%; }
-.col-found { width: 12%; }
-.col-due { width: 10%; }
-.col-remarks { width: 16%; }
+.col-serial {
+  width: 8%;
+}
+.col-code {
+  width: 12%;
+}
+.col-details {
+  width: 30%;
+}
+.col-approved {
+  width: 12%;
+}
+.col-found {
+  width: 12%;
+}
+.col-due {
+  width: 10%;
+}
+.col-remarks {
+  width: 16%;
+}
 
 .data-row {
   border-bottom: 1px solid #dee2e6;
@@ -439,7 +609,10 @@ export default {
   border-right: none;
 }
 
-.serial-cell, .code-cell, .approved-cell, .found-cell {
+.serial-cell,
+.code-cell,
+.approved-cell,
+.found-cell {
   text-align: center;
   font-weight: 600;
 }
@@ -553,7 +726,8 @@ export default {
     margin: 0;
   }
 
-  body, html {
+  body,
+  html {
     margin: 0;
     padding: 0;
   }
@@ -561,11 +735,11 @@ export default {
   .no-print {
     display: none !important;
   }
-  
+
   .report-container {
     background: white;
   }
-  
+
   .print-page {
     margin: 0;
     padding: 10mm 8mm;
@@ -577,22 +751,22 @@ export default {
     overflow: visible;
     border: 1px solid #ccc;
   }
-  
+
   .print-page:last-child {
     page-break-after: auto;
   }
-  
+
   .empty-row {
     height: 20px !important;
     background-color: transparent !important;
   }
-  
+
   .summary-section,
   .print-footer {
     padding: 5px 10px;
     font-size: 12px;
   }
-  
+
   .data-row:hover {
     background-color: transparent !important;
   }
@@ -607,29 +781,29 @@ export default {
     justify-content: center;
     margin-bottom: 20px;
   }
-  
+
   .print-page {
     width: 100%;
     margin: 10px;
     padding: 10mm;
   }
-  
+
   .print-table {
     font-size: 10px;
   }
-  
+
   .company-name {
     font-size: 16px;
   }
-  
+
   .report-title {
     font-size: 14px;
   }
-  
+
   .header-content {
     text-align: center;
   }
-  
+
   .print-header {
     flex-direction: column;
     text-align: center;
