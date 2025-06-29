@@ -201,6 +201,13 @@
                     >
                       <i class="fas fa-info"></i> রিপোর্ট করুন
                     </button>
+                    <button
+                      class="btn btn-primary btn-sm"
+                      @click="copyEntry(entry, index)"
+                      style="margin-left: 10px"
+                    >
+                      <i class="fas fa-copy"></i> কপি করুন
+                    </button>
                   </div>
                 </div>
               </div>
@@ -280,6 +287,28 @@ export default {
       this.showReportIssue = true;
     },
     editEntry(entry, index) {
+      // Set edit mode first
+      this.editIndex = index;
+
+      // Deep clone the entry to avoid reference issues
+      this.currentEntry = {
+        customerCode: entry.customerCode || "",
+        customerName: entry.customerName || "",
+        customerAddress: entry.customerAddress || "",
+        approvedBurner: entry.approvedBurner || "",
+        burnerFound: entry.burnerFound || "",
+        due: entry.due || "",
+        remarks: entry.remarks || "",
+        location: entry.location ? { ...entry.location } : null,
+        timestamp: entry.timestamp,
+      };
+
+      // Switch to form view
+      this.showForm = true;
+    },
+
+    // Copy entry to form for editing, it will not change the original entry, just populate the form
+    copyEntry(entry, index) {
       // Set edit mode first
       this.editIndex = index;
 
