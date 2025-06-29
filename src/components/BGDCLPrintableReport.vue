@@ -52,7 +52,7 @@
         </thead>
         <tbody>
           <tr v-for="(entry, idx) in pageEntries" :key="idx" class="data-row">
-            <td class="serial-cell">{{ idx + 1 + pageIndex * 15 }}</td>
+            <td class="serial-cell">{{ idx + 1 + pageIndex * 10 }}</td>
             <td class="code-cell">{{ entry.customerCode }}</td>
             <td class="details-cell">
               <div class="customer-info">
@@ -76,9 +76,9 @@
             <td class="remarks-cell">{{ entry.remarks || "নেই" }}</td>
           </tr>
 
-          <!-- Fill empty rows to maintain 15 rows per page -->
+          <!-- Fill empty rows to maintain 10 rows per page -->
           <tr
-            v-for="n in Math.max(0, 15 - pageEntries.length)"
+            v-for="n in Math.max(0, 10 - pageEntries.length)"
             :key="'empty-' + n"
             class="empty-row"
           >
@@ -167,7 +167,7 @@ export default {
       });
     },
     paginatedEntries() {
-      const chunkSize = 15;
+      const chunkSize = 10;
       const chunks = [];
       for (let i = 0; i < this.entries.length; i += chunkSize) {
         chunks.push(this.entries.slice(i, i + chunkSize));
@@ -184,7 +184,7 @@ export default {
   },
   methods: {
     async generateDocx() {
-      const chunkSize = 15;
+      const chunkSize = 10;
       const chunks = [];
       for (let i = 0; i < this.entries.length; i += chunkSize) {
         chunks.push(this.entries.slice(i, i + chunkSize));
@@ -320,7 +320,7 @@ export default {
             })
         );
 
-        // Empty rows to fill up to 15 entries
+        // Empty rows to fill up to 10 entries
         const emptyRowsCount = chunkSize - pageEntries.length;
         const emptyRows = Array.from({ length: emptyRowsCount }).map(
           () =>
