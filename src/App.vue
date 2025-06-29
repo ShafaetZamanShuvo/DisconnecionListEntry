@@ -307,10 +307,10 @@ export default {
       this.showForm = true;
     },
 
-    // Copy entry to form for editing, it will not change the original entry, just populate the form
+    // Copy entry to form for editing, it will not change the original entry, just populate the form with the data and save it as a new entry
     copyEntry(entry, index) {
       // Set edit mode first
-      this.editIndex = index;
+      this.editIndex = null;
 
       // Deep clone the entry to avoid reference issues
       this.currentEntry = {
@@ -322,7 +322,7 @@ export default {
         due: entry.due || "",
         remarks: entry.remarks || "",
         location: entry.location ? { ...entry.location } : null,
-        timestamp: entry.timestamp,
+        timestamp: new Date().toISOString(), // Set current timestamp for new entry
       };
 
       // Switch to form view
