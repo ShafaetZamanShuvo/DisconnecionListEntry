@@ -185,6 +185,8 @@ export default {
   methods: {
     // Replace your generateDocx method with this updated version
 
+// Replace your generateDocx method with this updated version
+
 async generateDocx() {
   const chunkSize = 10;
   const chunks = [];
@@ -192,12 +194,12 @@ async generateDocx() {
     chunks.push(this.entries.slice(i, i + chunkSize));
   }
 
-  // Define border style for all cells
+  // Define border style for all cells - increased size for visibility
   const cellBorders = {
-    top: { size: 1, color: "000000" },
-    bottom: { size: 1, color: "000000" },
-    left: { size: 1, color: "000000" },
-    right: { size: 1, color: "000000" },
+    top: { size: 4, color: "000000", style: "single" },
+    bottom: { size: 4, color: "000000", style: "single" },
+    left: { size: 4, color: "000000", style: "single" },
+    right: { size: 4, color: "000000", style: "single" },
   };
 
   const docSections = chunks.map((pageEntries, pageIndex) => {
@@ -370,10 +372,26 @@ async generateDocx() {
         })
     );
 
-    // Team No header on each page
-    const teamNoParagraph = new Paragraph({
-      text: `টীম নং: ${this.teamNo}`,
-      bold: true,
+    // Team No and Date header on each page
+    const teamAndDateParagraph = new Paragraph({
+      children: [
+        new TextRun({
+          text: `টীম নং: ${this.teamNo}`,
+          bold: true,
+        }),
+        new TextRun({
+          text: " | ",
+          bold: true,
+        }),
+        new TextRun({
+          text: `তারিখ: ${new Date().toLocaleDateString("bn-BD", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })}`,
+          bold: true,
+        }),
+      ],
       spacing: { after: 200 },
       alignment: AlignmentType.LEFT,
     });
@@ -414,20 +432,20 @@ async generateDocx() {
           spacing: { after: 400 },
         }),
 
-        // Team No
-        teamNoParagraph,
+        // Team No and Date
+        teamAndDateParagraph,
 
         // Table with borders
         new Table({
           rows: [headerRow, ...dataRows, ...emptyRows],
           width: { size: 100, type: WidthType.PERCENTAGE },
           borders: {
-            top: { size: 2, color: "000000" },
-            bottom: { size: 2, color: "000000" },
-            left: { size: 2, color: "000000" },
-            right: { size: 2, color: "000000" },
-            insideHorizontal: { size: 1, color: "000000" },
-            insideVertical: { size: 1, color: "000000" },
+            top: { size: 6, color: "000000", style: "single" },
+            bottom: { size: 6, color: "000000", style: "single" },
+            left: { size: 6, color: "000000", style: "single" },
+            right: { size: 6, color: "000000", style: "single" },
+            insideHorizontal: { size: 4, color: "000000", style: "single" },
+            insideVertical: { size: 4, color: "000000", style: "single" },
           },
         }),
 
