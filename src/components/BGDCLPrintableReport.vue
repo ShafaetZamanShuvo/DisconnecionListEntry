@@ -183,245 +183,278 @@ export default {
     },
   },
   methods: {
-    async generateDocx() {
-      const chunkSize = 10;
-      const chunks = [];
-      for (let i = 0; i < this.entries.length; i += chunkSize) {
-        chunks.push(this.entries.slice(i, i + chunkSize));
-      }
+    // Replace your generateDocx method with this updated version
 
-      const docSections = chunks.map((pageEntries, pageIndex) => {
-        // Header row for table columns
-        const headerRow = new TableRow({
+async generateDocx() {
+  const chunkSize = 10;
+  const chunks = [];
+  for (let i = 0; i < this.entries.length; i += chunkSize) {
+    chunks.push(this.entries.slice(i, i + chunkSize));
+  }
+
+  // Define border style for all cells
+  const cellBorders = {
+    top: { size: 1, color: "000000" },
+    bottom: { size: 1, color: "000000" },
+    left: { size: 1, color: "000000" },
+    right: { size: 1, color: "000000" },
+  };
+
+  const docSections = chunks.map((pageEntries, pageIndex) => {
+    // Header row for table columns
+    const headerRow = new TableRow({
+      children: [
+        new TableCell({
+          width: { size: 5, type: WidthType.PERCENTAGE },
+          borders: cellBorders,
           children: [
-            new TableCell({
-              width: { size: 5, type: WidthType.PERCENTAGE },
-              children: [
-                new Paragraph({
-                  text: "ক্রমিক",
-                  bold: true,
-                  alignment: AlignmentType.CENTER,
-                }),
-              ],
-            }),
-            new TableCell({
-              width: { size: 10, type: WidthType.PERCENTAGE },
-              children: [
-                new Paragraph({
-                  text: "কোড",
-                  bold: true,
-                  alignment: AlignmentType.CENTER,
-                }),
-              ],
-            }),
-            new TableCell({
-              width: { size: 25, type: WidthType.PERCENTAGE },
-              children: [
-                new Paragraph({
-                  text: "নাম, ঠিকানা ও অবস্থান",
-                  bold: true,
-                  alignment: AlignmentType.CENTER,
-                }),
-              ],
-            }),
-            new TableCell({
-              width: { size: 10, type: WidthType.PERCENTAGE },
-              children: [
-                new Paragraph({
-                  text: "অনুমোদিত বার্নার",
-                  bold: true,
-                  alignment: AlignmentType.CENTER,
-                }),
-              ],
-            }),
-            new TableCell({
-              width: { size: 10, type: WidthType.PERCENTAGE },
-              children: [
-                new Paragraph({
-                  text: "পাওয়া বার্নার",
-                  bold: true,
-                  alignment: AlignmentType.CENTER,
-                }),
-              ],
-            }),
-            new TableCell({
-              width: { size: 10, type: WidthType.PERCENTAGE },
-              children: [
-                new Paragraph({
-                  text: "বকেয়া",
-                  bold: true,
-                  alignment: AlignmentType.CENTER,
-                }),
-              ],
-            }),
-            new TableCell({
-              width: { size: 20, type: WidthType.PERCENTAGE },
-              children: [
-                new Paragraph({
-                  text: "মন্তব্য",
-                  bold: true,
-                  alignment: AlignmentType.CENTER,
-                }),
-              ],
-            }),
-          ],
-        });
-
-        // Data rows
-        const dataRows = pageEntries.map(
-          (entry, idx) =>
-            new TableRow({
-              children: [
-                new TableCell({
-                  children: [
-                    new Paragraph(String(idx + 1 + pageIndex * chunkSize)),
-                  ],
-                }),
-                new TableCell({
-                  children: [new Paragraph(entry.customerCode || "")],
-                }),
-                new TableCell({
-                  children: [
-                    new Paragraph(entry.customerName || ""),
-                    new Paragraph(entry.customerAddress || ""),
-                    entry.location
-                      ? new Paragraph(
-                          `(${entry.location.latitude.toFixed(
-                            6
-                          )}, ${entry.location.longitude.toFixed(6)})`
-                        )
-                      : new Paragraph(""),
-                  ],
-                }),
-                new TableCell({
-                  children: [new Paragraph(entry.approvedBurner || "")],
-                }),
-                new TableCell({
-                  children: [new Paragraph(entry.burnerFound || "")],
-                }),
-                new TableCell({
-                  children: [
-                    new Paragraph(
-                      entry.due && entry.due !== "0" ? `৳${entry.due}` : "নেই"
-                    ),
-                  ],
-                }),
-                new TableCell({
-                  children: [new Paragraph(entry.remarks || "নেই")],
-                }),
-              ],
-              // Add borders to each data row cell
-              borders: {
-                top: { size: 1, color: "000000" },
-                bottom: { size: 1, color: "000000" },
-                left: { size: 1, color: "000000" },
-                right: { size: 1, color: "000000" },
-              },
-            })
-        );
-
-        // Empty rows to fill up to 10 entries
-        const emptyRowsCount = chunkSize - pageEntries.length;
-        const emptyRows = Array.from({ length: emptyRowsCount }).map(
-          () =>
-            new TableRow({
-              children: Array(7)
-                .fill(null)
-                .map(() => new TableCell({ children: [new Paragraph("")] })),
-              borders: {
-                top: { size: 1, color: "000000" },
-                bottom: { size: 1, color: "000000" },
-                left: { size: 1, color: "000000" },
-                right: { size: 1, color: "000000" },
-              },
-            })
-        );
-
-        // Team No header on each page
-        const teamNoParagraph = new Paragraph({
-          text: `টীম নং: ${this.teamNo}`,
-          bold: true,
-          spacing: { after: 200 },
-          alignment: AlignmentType.LEFT,
-        });
-
-        // Summary paragraph
-        const summaryParagraph = new Paragraph({
-          children: [
-            new TextRun({
-              text: `পৃষ্ঠা: ${pageIndex + 1} / ${
-                chunks.length
-              } | মোট পরিদর্শন: ${this.entries.length} | মোট বকেয়া: ৳${
-                this.totalDue
-              }`,
+            new Paragraph({
+              text: "ক্রমিক",
               bold: true,
+              alignment: AlignmentType.CENTER,
             }),
           ],
-          spacing: { before: 300, after: 300 },
-          alignment: AlignmentType.CENTER,
-        });
-
-        return {
+        }),
+        new TableCell({
+          width: { size: 10, type: WidthType.PERCENTAGE },
+          borders: cellBorders,
           children: [
-            // Company name and report title
             new Paragraph({
-              text: "বাখরাবাদ গ্যাস ডিস্ট্রিবিউশন কোম্পানী লিমিটেড",
-              heading: HeadingLevel.HEADING1,
+              text: "কোড",
+              bold: true,
               alignment: AlignmentType.CENTER,
             }),
-            new Paragraph({
-              text: "(পেট্রোবাংলার একটি কোম্পানি)",
-              alignment: AlignmentType.CENTER,
-              spacing: { after: 200 },
-            }),
-            new Paragraph({
-              text: "ফিল্ড সার্ভে রিপোর্ট",
-              heading: HeadingLevel.HEADING2,
-              alignment: AlignmentType.CENTER,
-              spacing: { after: 400 },
-            }),
-
-            // Team No
-            teamNoParagraph,
-
-            // Table
-            new Table({
-              rows: [headerRow, ...dataRows, ...emptyRows],
-              width: { size: 100, type: WidthType.PERCENTAGE },
-              borders: {
-                top: { size: 2, color: "000000" },
-                bottom: { size: 2, color: "000000" },
-                left: { size: 2, color: "000000" },
-                right: { size: 2, color: "000000" },
-                insideHorizontal: { size: 1, color: "000000" },
-                insideVertical: { size: 1, color: "000000" },
-              },
-            }),
-
-            // Summary
-            summaryParagraph,
-
-            // Page break after each page
-            new Paragraph({ text: "", pageBreakAfter: true }),
           ],
-        };
-      });
+        }),
+        new TableCell({
+          width: { size: 25, type: WidthType.PERCENTAGE },
+          borders: cellBorders,
+          children: [
+            new Paragraph({
+              text: "নাম, ঠিকানা ও অবস্থান",
+              bold: true,
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+        }),
+        new TableCell({
+          width: { size: 10, type: WidthType.PERCENTAGE },
+          borders: cellBorders,
+          children: [
+            new Paragraph({
+              text: "অনুমোদিত বার্নার",
+              bold: true,
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+        }),
+        new TableCell({
+          width: { size: 10, type: WidthType.PERCENTAGE },
+          borders: cellBorders,
+          children: [
+            new Paragraph({
+              text: "পাওয়া বার্নার",
+              bold: true,
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+        }),
+        new TableCell({
+          width: { size: 10, type: WidthType.PERCENTAGE },
+          borders: cellBorders,
+          children: [
+            new Paragraph({
+              text: "বকেয়া",
+              bold: true,
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+        }),
+        new TableCell({
+          width: { size: 20, type: WidthType.PERCENTAGE },
+          borders: cellBorders,
+          children: [
+            new Paragraph({
+              text: "মন্তব্য",
+              bold: true,
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+        }),
+      ],
+    });
 
-      // Create the document
-      const doc = new Document({
-        sections: docSections.map((section) => ({
-          properties: {},
-          children: section.children,
-        })),
-      });
+    // Data rows
+    const dataRows = pageEntries.map(
+      (entry, idx) =>
+        new TableRow({
+          children: [
+            new TableCell({
+              borders: cellBorders,
+              children: [
+                new Paragraph({
+                  text: String(idx + 1 + pageIndex * chunkSize),
+                  alignment: AlignmentType.CENTER,
+                }),
+              ],
+            }),
+            new TableCell({
+              borders: cellBorders,
+              children: [
+                new Paragraph({
+                  text: entry.customerCode || "",
+                  alignment: AlignmentType.CENTER,
+                }),
+              ],
+            }),
+            new TableCell({
+              borders: cellBorders,
+              children: [
+                new Paragraph(entry.customerName || ""),
+                new Paragraph(entry.customerAddress || ""),
+                entry.location
+                  ? new Paragraph(
+                      `(${entry.location.latitude.toFixed(
+                        6
+                      )}, ${entry.location.longitude.toFixed(6)})`
+                    )
+                  : new Paragraph(""),
+              ],
+            }),
+            new TableCell({
+              borders: cellBorders,
+              children: [
+                new Paragraph({
+                  text: entry.approvedBurner || "",
+                  alignment: AlignmentType.CENTER,
+                }),
+              ],
+            }),
+            new TableCell({
+              borders: cellBorders,
+              children: [
+                new Paragraph({
+                  text: entry.burnerFound || "",
+                  alignment: AlignmentType.CENTER,
+                }),
+              ],
+            }),
+            new TableCell({
+              borders: cellBorders,
+              children: [
+                new Paragraph({
+                  text: entry.due && entry.due !== "0" ? `৳${entry.due}` : "নেই",
+                  alignment: AlignmentType.CENTER,
+                }),
+              ],
+            }),
+            new TableCell({
+              borders: cellBorders,
+              children: [new Paragraph(entry.remarks || "নেই")],
+            }),
+          ],
+        })
+    );
 
-      // Generate and save the docx
-      const blob = await Packer.toBlob(doc);
-      saveAs(
-        blob,
-        `Field_Survey_Report_${new Date().toISOString().slice(0, 10)}.docx`
-      );
-    },
+    // Empty rows to fill up to 10 entries
+    const emptyRowsCount = chunkSize - pageEntries.length;
+    const emptyRows = Array.from({ length: emptyRowsCount }).map(
+      () =>
+        new TableRow({
+          children: Array(7)
+            .fill(null)
+            .map(() => new TableCell({ 
+              borders: cellBorders,
+              children: [new Paragraph("")] 
+            })),
+        })
+    );
+
+    // Team No header on each page
+    const teamNoParagraph = new Paragraph({
+      text: `টীম নং: ${this.teamNo}`,
+      bold: true,
+      spacing: { after: 200 },
+      alignment: AlignmentType.LEFT,
+    });
+
+    // Summary paragraph
+    const summaryParagraph = new Paragraph({
+      children: [
+        new TextRun({
+          text: `পৃষ্ঠা: ${pageIndex + 1} / ${
+            chunks.length
+          } | মোট পরিদর্শন: ${this.entries.length} | মোট বকেয়া: ৳${
+            this.totalDue
+          }`,
+          bold: true,
+        }),
+      ],
+      spacing: { before: 300, after: 300 },
+      alignment: AlignmentType.CENTER,
+    });
+
+    return {
+      children: [
+        // Company name and report title
+        new Paragraph({
+          text: "বাখরাবাদ গ্যাস ডিস্ট্রিবিউশন কোম্পানী লিমিটেড",
+          heading: HeadingLevel.HEADING1,
+          alignment: AlignmentType.CENTER,
+        }),
+        new Paragraph({
+          text: "(পেট্রোবাংলার একটি কোম্পানি)",
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 200 },
+        }),
+        new Paragraph({
+          text: "ফিল্ড সার্ভে রিপোর্ট",
+          heading: HeadingLevel.HEADING2,
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 400 },
+        }),
+
+        // Team No
+        teamNoParagraph,
+
+        // Table with borders
+        new Table({
+          rows: [headerRow, ...dataRows, ...emptyRows],
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          borders: {
+            top: { size: 2, color: "000000" },
+            bottom: { size: 2, color: "000000" },
+            left: { size: 2, color: "000000" },
+            right: { size: 2, color: "000000" },
+            insideHorizontal: { size: 1, color: "000000" },
+            insideVertical: { size: 1, color: "000000" },
+          },
+        }),
+
+        // Summary
+        summaryParagraph,
+
+        // Page break after each page
+        new Paragraph({ text: "", pageBreakAfter: true }),
+      ],
+    };
+  });
+
+  // Create the document
+  const doc = new Document({
+    sections: docSections.map((section) => ({
+      properties: {},
+      children: section.children,
+    })),
+  });
+
+  // Generate and save the docx
+  const blob = await Packer.toBlob(doc);
+  saveAs(
+    blob,
+    `Field_Survey_Report_${new Date().toISOString().slice(0, 10)}.docx`
+  );
+},
 
     printReport() {
       window.print();
